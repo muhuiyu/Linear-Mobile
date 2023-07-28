@@ -1,0 +1,6 @@
+export const appName = 'My Linear'
+export const homeTabName = 'Home'
+export const projectsTabName = 'Projects'
+export const issuesTabName = 'Issues'
+export const dashboardTabName = 'Dashboard'
+export const notificationsTabName = 'Notifications'

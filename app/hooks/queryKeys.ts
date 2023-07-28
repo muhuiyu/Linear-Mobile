@@ -1,0 +1,6 @@
+export const teamsQueryKey = 'teamsQueryKey'
+export const projectsQueryKey = 'projectsQueryKey'
+export const projectQueryKey = 'projectQueryKey'
+export const issuesQueryKey = 'issuesQueryKey'
+export const issueQueryKey = 'issueQueryKey'
+export const currentAuthQueryKey = 'currentAuthQueryKey'
