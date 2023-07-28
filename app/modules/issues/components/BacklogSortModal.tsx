@@ -4,24 +4,16 @@ import { Modal, Pressable, StyleSheet, Text, View } from 'react-native'
 import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown, runOnJS } from 'react-native-reanimated'
 import { capitalizeFirst } from '../../common/helpers/stringHelpers'
 import FilterModalOptionRow from './FilterModalOptionRow'
+import { IssueSortedBy } from './SortModal'
 
 interface Props {
   visible: boolean
   onRequestClose(): void
-  layout: IssueListLayout
-  onChangeLayout(layout: IssueListLayout): void
   sortedBy: IssueSortedBy
   onChangeSortedBy(sortedBy: IssueSortedBy): void
 }
 
-export default function SortModal({
-  visible,
-  layout,
-  onChangeLayout,
-  onRequestClose,
-  sortedBy,
-  onChangeSortedBy,
-}: Props) {
+export default function BacklogSortModal({ visible, onRequestClose, sortedBy, onChangeSortedBy }: Props) {
   const [isModalVisible, setIsModalVisible] = useState(visible)
 
   useEffect(() => {
@@ -55,21 +47,7 @@ export default function SortModal({
               }
             })}
           >
-            <Text className="text-base mb-4 font-semibold px-5">Display</Text>
-            <View className="px-5 py-2 border-t border-b border-gray-300">
-              <Text className="text-slate-500 py-2">Layout</Text>
-              {allLayouts.map((value) => (
-                <FilterModalOptionRow
-                  key={value}
-                  title={capitalizeFirst(value)}
-                  onPress={() => {
-                    onChangeLayout(value)
-                  }}
-                  isChecked={layout === value}
-                />
-              ))}
-            </View>
-            <View className="px-5 py-2">
+            <View className="px-5 pb-2">
               <Text className="text-slate-500 py-2">Sorted by</Text>
               {allSortedBy.map((value) => (
                 <FilterModalOptionRow
@@ -89,7 +67,4 @@ export default function SortModal({
   )
 }
 
-export type IssueListLayout = 'board' | 'list'
-const allLayouts: IssueListLayout[] = ['board', 'list']
-export type IssueSortedBy = 'status' | 'priority' | 'identifier' | 'title' | 'manual'
-const allSortedBy: IssueSortedBy[] = ['status', 'priority', 'identifier', 'title', 'manual']
+const allSortedBy: IssueSortedBy[] = ['status', 'priority', 'identifier', 'title', 'manual', 'dueDate']

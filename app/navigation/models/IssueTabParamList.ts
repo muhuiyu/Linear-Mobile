@@ -3,9 +3,8 @@ import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-naviga
 import { Team } from '../../models/Team'
 
 type IssueTabParamList = {
-  IssueBoard: undefined
-  IssueList: { teamId: Team['id'] }
-  IssueBacklog: undefined
+  ActiveIssues: { teamId: Team['id'] }
+  IssueBacklog: { teamId: Team['id'] }
 }
 
 export default IssueTabParamList

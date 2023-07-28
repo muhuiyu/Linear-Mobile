@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiEndPoint } from '../constants/Environment'
-import { UserSchema, userBasicQuery, userQuery } from '../models/User'
+import { UserSchema, userQuery } from '../models/User'
 import { currentAuthQueryKey } from './queryKeys'
 
 export type UseCurrentUserType = 'basic' | 'default'
@@ -11,9 +11,6 @@ export default function useCurrentUser(token: string, type: UseCurrentUserType) 
     queryFn: async () => {
       let query = ''
       switch (type) {
-        case 'basic':
-          query = `{ viewer { ${userBasicQuery} } }`
-          break
         case 'default':
           query = `{ viewer { ${userQuery} } }`
           break

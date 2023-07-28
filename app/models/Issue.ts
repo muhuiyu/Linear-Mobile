@@ -123,7 +123,7 @@ export interface IssueFull {
   /** The issue's description in markdown format. */
   description?: string
   /** The date at which the issue is due. */
-  //   dueDate?: L.Scalars['TimelessDate']
+  // dueDate?: L.Scalars['TimelessDate']
   /** The estimate of the complexity of the issue.. */
   estimate?: number
   /** The unique identifier of the entity. */
@@ -228,4 +228,12 @@ export const wasCompletedInPastWeek = (issue: Issue) => {
     return differenceInDays <= 7
   }
   return false
+}
+
+export const priorityNumberToString: Record<number, string> = {
+  0: 'no priority',
+  1: 'urgent',
+  2: 'high',
+  3: 'medium',
+  4: 'low',
 }

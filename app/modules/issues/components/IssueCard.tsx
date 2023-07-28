@@ -1,5 +1,7 @@
+import { faCircleUser } from '@fortawesome/free-regular-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import _ from 'lodash'
-import { Pressable, Text, View } from 'react-native'
+import { Image, Pressable, Text, View } from 'react-native'
 import { Issue } from '../../../models/Issue'
 import { renderPriorityIcon } from './IssueListRow'
 
@@ -18,7 +20,14 @@ export default function IssueCard({ issue, onPressIssue }: Props) {
         onPressIssue(issue.id)
       }}
     >
-      <Text>{issue.title}</Text>
+      <View className="flex flex-row justify-between">
+        <Text className="w-4/5">{issue.title}</Text>
+        {issue?.assignee?.avatarUrl ? (
+          <Image className="h-7 w-7 rounded-full mr-2" source={{ uri: issue?.assignee?.avatarUrl }} />
+        ) : (
+          <FontAwesomeIcon icon={faCircleUser} color="#899499" size={28} />
+        )}
+      </View>
       {/* labels */}
       {hasLabels ? (
         <View className="flex flex-row flex-wrap">

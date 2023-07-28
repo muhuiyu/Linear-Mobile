@@ -2,10 +2,11 @@ import { faQuestionCircle } from '@fortawesome/free-regular-svg-icons'
 import { IconDefinition } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import { Text, View } from 'react-native'
+import { priorityNumberToString } from '../../../models/Issue'
 import { IssueLabel } from '../../../models/IssueLabel'
 import { Project, linearIconToIconDefinition } from '../../../models/Project'
 import { WorkflowState, WorkflowStateType, stateIconInfo } from '../../../models/WorkFlowState'
-import { IssueGroupedBy } from '../IssueListView'
+import { IssueGroupedBy } from '../ActiveIssuesView'
 
 // Render list header
 const renderSectionHeader = (
@@ -30,7 +31,12 @@ const renderSectionHeader = (
       title = label.name
       color = label.color
       break
+    case 'priority':
+      const priority = header as number
+      title = priorityNumberToString[priority] ?? ''
+      break
     default:
+      // state
       const state = header as WorkflowState
       let { icon: stateIcon, color: stateColor } = stateIconInfo(state.type as WorkflowStateType)
       title = state.name

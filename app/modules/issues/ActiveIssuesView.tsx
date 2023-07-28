@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import useAllIssues from '../../hooks/useAllIssues'
 import useAuth from '../../hooks/useAuth'
 import useCurrentUser from '../../hooks/useCurrentUser'
-import { Issue, wasCompletedInPastDay, wasCompletedInPastWeek } from '../../models/Issue'
+import { Issue, priorityNumberToString, wasCompletedInPastDay, wasCompletedInPastWeek } from '../../models/Issue'
 import { IssueLabel } from '../../models/IssueLabel'
 import { Project } from '../../models/Project'
 import { WorkflowState } from '../../models/WorkFlowState'
@@ -21,13 +21,12 @@ import IssueListRow from './components/IssueListRow'
 import renderSectionHeader from './components/SectionHeader'
 import SortModal, { IssueListLayout, IssueSortedBy } from './components/SortModal'
 
-type Props = IssueTabScreenProps<'IssueList'>
+type Props = IssueTabScreenProps<'ActiveIssues'>
 
-export default function IssueListView(props: Props) {
+export default function ActiveIssuesView(props: Props) {
   // Fetch issues
   const { token } = useAuth()
-  const isBacklogIncluded = false
-  const { issues, isLoading } = useAllIssues(token, props.route.params.teamId, isBacklogIncluded)
+  const { activeIssues: issues, isLoading } = useAllIssues(token, props.route.params.teamId)
   const { currentUser } = useCurrentUser(token, 'default')
 
   // navigation
@@ -78,7 +77,7 @@ export default function IssueListView(props: Props) {
     return _.isEmpty(searchText)
       ? issueList
       : issueList?.filter((issue) => issue.title.toLowerCase().includes(searchText.toLowerCase()))
-  }, [issues, searchText, showCompletedItemsType, isShowingMineOnly])
+  }, [issues, searchText, showCompletedItemsType, isShowingMineOnly, isShowingSubIssue])
 
   // Group issues by states
   const groupedIssues: GroupedIssue[] = useMemo(() => {
@@ -110,9 +109,23 @@ export default function IssueListView(props: Props) {
           }
           return accumulator
         }, [] as GroupedIssue[])
+      case 'label':
+        const accumulator: GroupedIssue[] = []
 
-      // TODO: add labels
+        filterIssues.forEach((issue) => {
+          issue.labels?.forEach((label) => {
+            const existingGroup = accumulator.find((group) => (group.header as IssueLabel).id === label.id)
+            if (existingGroup) {
+              existingGroup.data.push(issue)
+            } else {
+              const newGroup: GroupedIssue = { groupedBy: 'label', header: label, data: [issue] }
+              accumulator.push(newGroup)
+            }
+          })
+        })
+        return accumulator
       default:
+        // status
         return filterIssues.reduce((accumulator, issue) => {
           const existingGroup = accumulator.find((group) => (group.header as WorkflowState).id === issue.state.id)
 
@@ -137,38 +150,50 @@ export default function IssueListView(props: Props) {
     switch (layout) {
       case 'board':
         return (
-          <ScrollView horizontal>
-            {groupedIssues.map((section, index) => {
-              let title = ''
-              switch (section.groupedBy) {
-                case 'status':
-                  title = (section.header as WorkflowState).name
-                  break
-                case 'project':
-                  title = (section.header as Project).name
-                  break
-                case 'priority':
-                  title = (section.header as number).toString()
-                  break
-              }
+          <>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {groupedIssues.map((section, index) => {
+                let title = ''
+                switch (section.groupedBy) {
+                  case 'status':
+                    title = (section.header as WorkflowState).name
+                    break
+                  case 'project':
+                    title = (section.header as Project).name
+                    break
+                  case 'priority':
+                    title = priorityNumberToString[section.header as number]
+                    break
+                  case 'label':
+                    title = (section.header as IssueLabel).name
+                    break
+                }
 
-              return (
-                <View className="mx-4" key={index}>
-                  <View className="flex flex-row bg-gray-100 py-2 pl-2 w-[300px]">
-                    <Text>{title}</Text>
-                    <Text className="text-gray-500 ml-2">{section.data.length}</Text>
+                return (
+                  <View className="mx-4" key={index}>
+                    <View className="flex flex-row bg-gray-100 py-2 pl-2 w-[300px]">
+                      <Text>{title}</Text>
+                      <Text className="text-gray-500 ml-2">{section.data.length}</Text>
+                    </View>
+                    <View className="bg-gray-100 mt-2 h-full w-[300px]">
+                      <ScrollView className="m-2" showsVerticalScrollIndicator={false}>
+                        {section.data.map((issue) => (
+                          <IssueCard key={issue.id} {...{ issue, onPressIssue }} />
+                        ))}
+                      </ScrollView>
+                    </View>
                   </View>
-                  <View className="bg-gray-100 mt-2 h-full w-[300px]">
-                    <ScrollView className="m-2">
-                      {section.data.map((issue) => (
-                        <IssueCard key={issue.id} {...{ issue, onPressIssue }} />
-                      ))}
-                    </ScrollView>
-                  </View>
-                </View>
-              )
-            })}
-          </ScrollView>
+                )
+              })}
+            </ScrollView>
+            {/* TODO: add scroll indicator */}
+            {/* <View className="justify-center items-center pt-2 flex flex-row gap-1">
+              <View className={classNames('h-2 w-2 rounded-full bg-slate-300')}></View>
+              <View className={classNames('h-2 w-2 rounded-full bg-slate-300')}></View>
+              <View className={classNames('h-2 w-2 rounded-full bg-slate-300')}></View>
+              <View className={classNames('h-2 w-2 rounded-full bg-slate-300')}></View>
+            </View> */}
+          </>
         )
       case 'list':
         return (
