@@ -9,7 +9,7 @@ interface Props {
 
 export default function SearchBar({ value, onChangeText }: Props) {
   return (
-    <View className="flex flex-row justify-center bg-gray-100 rounded-lg">
+    <View className="flex flex-1 flex-row justify-center bg-gray-100 rounded-lg">
       <View className="h-10 w-10 items-center justify-center">
         <FontAwesomeIcon icon={faSearch} color="#888" size={16} />
       </View>

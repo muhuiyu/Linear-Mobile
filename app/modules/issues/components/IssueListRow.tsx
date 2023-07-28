@@ -25,10 +25,10 @@ export default function IssueListRow({ issue, onPressIssue }: Props) {
         <View className="py-3">
           <Text className="text-sm font-semibold text-black leading-4 mb-2">{issue.title}</Text>
           {/* <Text className="text-sm text-gray-400">{project.id}</Text> */}
-          <View className="flex flex-row gap-4">
-            <Text className="text-xs text-gray-400">{issue.identifier}</Text>
-            <Text className="text-xs text-gray-400">{issue.priorityLabel}</Text>
-            {renderPriorityIcon(issue.priority)}
+          <View className="flex flex-row items-center">
+            <Text className="text-xs text-gray-400 mr-2">{issue.identifier}</Text>
+            {/* <Text className="text-xs text-gray-400">{issue.priorityLabel}</Text> */}
+            {renderPriorityIcon(issue.priority, 12)}
           </View>
         </View>
         {/* <Pressable className="p-2">
@@ -38,7 +38,7 @@ export default function IssueListRow({ issue, onPressIssue }: Props) {
     </Pressable>
   )
 }
-export const renderPriorityIcon = (priority: number) => {
+export const renderPriorityIcon = (priority: number, size: number) => {
   let icon = faCircle
 
   switch (priority) {
@@ -63,5 +63,5 @@ export const renderPriorityIcon = (priority: number) => {
       break
   }
 
-  return <FontAwesomeIcon icon={icon} color="#808080" />
+  return <FontAwesomeIcon icon={icon} color="#808080" size={size} />
 }

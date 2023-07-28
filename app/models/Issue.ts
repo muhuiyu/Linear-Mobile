@@ -1,12 +1,14 @@
+import { now } from 'lodash'
 import { z } from 'zod'
 import { CommentSchema, commentQuery } from './Comment'
 import { IssueLabelSchema, issueLabelQuery } from './IssueLabel'
+import { ProjectSchema, projectQuery } from './Project'
 import { UserSchema, userQuery } from './User'
 import { WorkflowStateSchema, workflowStateQuery } from './WorkFlowState'
 
-// without sub-tasks, parent, label, creator, comments
-export const issueQuery = `id title identifier sortOrder url state { ${workflowStateQuery} } priority priorityLabel assignee { ${userQuery} }`
-export const issueFullQuery = `${issueQuery} creator { ${userQuery} } parent { ${issueQuery} } children { nodes { ${issueQuery} } } labels { nodes { ${issueLabelQuery} } } comments { nodes { ${commentQuery} } }`
+// without sub-tasks, parent, creator, comments
+export const issueQuery = `id title identifier sortOrder completedAt url state { ${workflowStateQuery} } priority priorityLabel assignee { ${userQuery} } project { ${projectQuery} } labels { nodes { ${issueLabelQuery} } } `
+export const issueFullQuery = `${issueQuery} creator { ${userQuery} } parent { ${issueQuery} } children { nodes { ${issueQuery} } } comments { nodes { ${commentQuery} } }`
 
 const BaseIssueSchema = z.object({
   id: z.string(),
@@ -15,10 +17,16 @@ const BaseIssueSchema = z.object({
   title: z.string(),
   identifier: z.string(),
   state: WorkflowStateSchema,
+  completedAt: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((value) => (value ? new Date() : undefined)),
   priority: z.number(),
   priorityLabel: z.string(),
   assignee: UserSchema.nullable().optional(),
   creator: UserSchema.nullable().optional(),
+  project: ProjectSchema,
   comments: z
     .object({
       nodes: z.array(CommentSchema),
@@ -102,8 +110,6 @@ export interface IssueFull {
   autoArchivedAt?: Date
   /** The time at which the issue was automatically closed by the auto pruning process. */
   autoClosedAt?: Date
-  /** The order of the item in its column on the board. */
-  sortOrder: number
   /** Suggested branch name for the issue. */
   branchName: string
   /** The time at which the issue was moved into canceled state. */
@@ -202,4 +208,24 @@ export interface IssueFull {
   //   unarchive(): LinearFetch<IssueArchivePayload>
   /** Updates an issue. */
   //   update(input: L.IssueUpdateInput): LinearFetch<IssuePayload>
+}
+
+// Filter completed issues in the past day
+export const wasCompletedInPastDay = (issue: Issue) => {
+  if (issue.completedAt) {
+    const differenceInTime = now() - issue.completedAt.getTime()
+    const differenceInDays = differenceInTime / (1000 * 3600 * 24)
+    return differenceInDays <= 1
+  }
+  return false
+}
+
+// Filter completed issues in the past week
+export const wasCompletedInPastWeek = (issue: Issue) => {
+  if (issue.completedAt) {
+    const differenceInTime = now() - issue.completedAt.getTime()
+    const differenceInDays = differenceInTime / (1000 * 3600 * 24)
+    return differenceInDays <= 7
+  }
+  return false
 }

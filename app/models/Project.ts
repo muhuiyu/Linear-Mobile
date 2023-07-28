@@ -1,3 +1,7 @@
+import { IconDefinition, faCalendar } from '@fortawesome/free-regular-svg-icons'
+import { faBolt, faBook, faFire, faMusic, faTerminal, faVideo } from '@fortawesome/free-solid-svg-icons'
+import { z } from 'zod'
+
 export interface Project {
   color: string
   icon?: string
@@ -6,6 +10,13 @@ export interface Project {
 }
 
 export const projectQuery = 'color icon id name'
+
+export const ProjectSchema = z.object({
+  id: z.string(),
+  color: z.string(),
+  icon: z.string().optional(),
+  name: z.string(),
+})
 
 export interface ProjectFull {
   //   private _convertedFromIssue?
@@ -141,3 +152,13 @@ const allProjectKeys: (keyof ProjectFull)[] = [
 ]
 
 export const projectFullQuery = '{ ' + allProjectKeys.join(' ') + ' }'
+
+export const linearIconToIconDefinition: Record<string, IconDefinition> = {
+  MusicKey: faMusic,
+  Book: faBook,
+  Fire: faFire,
+  Calendar: faCalendar,
+  Bolt: faBolt,
+  Terminal: faTerminal,
+  Video: faVideo,
+}

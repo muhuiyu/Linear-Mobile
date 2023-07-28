@@ -2,6 +2,8 @@ import { faBell, faFile, faFileClipboard, faFolder } from '@fortawesome/free-reg
 import { faHome } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import { useState } from 'react'
+import { View } from 'react-native'
 import {
   dashboardTabName,
   homeTabName,
@@ -9,6 +11,7 @@ import {
   notificationsTabName,
   projectsTabName,
 } from '../../constants/AppText'
+import useAuth from '../../hooks/useAuth'
 import { RootScreenProps, useRootNavigation } from '../../navigation/models/RootParamList'
 import TabParamList from '../../navigation/models/TabParamList'
 import DashboardView from '../dashboard/DashboardView'
@@ -23,6 +26,8 @@ type Props = RootScreenProps<'Home'>
 const Tab = createBottomTabNavigator<TabParamList>()
 
 export default function MainTabScreen() {
+  const { defaultTeamId } = useAuth()
+  const [currentTeamId, setCurrentTeamId] = useState(defaultTeamId)
   return (
     <Tab.Navigator screenOptions={{ headerShown: true }}>
       <Tab.Screen
@@ -48,6 +53,7 @@ export default function MainTabScreen() {
               className="pr-4"
               onPress={() => {
                 // TODO:
+                // change
               }}
             />
           ),
@@ -55,21 +61,30 @@ export default function MainTabScreen() {
       />
       <Tab.Screen
         name="IssuesTab"
-        component={IssuesContent}
+        component={IssuesView}
         options={{
           title: issuesTabName,
           tabBarIcon: ({ focused, color, size }) => {
             return <FontAwesomeIcon icon={faFile} size={size * 0.9} color={color} />
           },
           headerRight: () => (
-            <PlusButton
-              className="pr-4"
-              onPress={() => {
-                // TODO:
-              }}
-            />
+            <View className="flex flex-row">
+              <PlusButton
+                className="pr-4"
+                onPress={() => {
+                  // TODO:
+                }}
+              />
+              <PlusButton
+                className="pr-4"
+                onPress={() => {
+                  // TODO:
+                }}
+              />
+            </View>
           ),
         }}
+        initialParams={{ teamId: currentTeamId }}
       />
       <Tab.Screen
         name="DashboardTab"
@@ -117,11 +132,10 @@ const ProjectsContent = () => {
   )
 }
 
-const IssuesContent = () => {
-  const navigation = useRootNavigation()
-  // return <MemberListView onPressMember={(memberId) => navigation.navigate('MemberDetails', { memberId: memberId })} />
-  return <IssuesView onPressIssue={(issueId) => navigation.navigate('IssueDetails', { issueId: issueId })} />
-}
+// const IssuesContent = () => {
+//   const navigation = useRootNavigation()
+//   return <IssuesView />
+// }
 
 const DashboardContent = () => {
   const navigation = useRootNavigation()

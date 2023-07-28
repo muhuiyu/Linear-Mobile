@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiEndPoint } from '../constants/Environment'
-import { Issue, issueQuery as issuesQuery } from '../models/Issue'
+import { Issue, IssueSchema, issueQuery as issuesQuery } from '../models/Issue'
 import { issuesQueryKey } from './queryKeys'
 
 const query = `{ issues { nodes { ${issuesQuery} } } }`
 
-export default function useAllIssues(token: string) {
+export default function useAllIssues(token: string, teamId: string, isBacklogIncluded: boolean) {
   const { data: issues, isFetching } = useQuery({
     queryKey: [issuesQueryKey],
     queryFn: async () => {
@@ -15,13 +15,14 @@ export default function useAllIssues(token: string) {
           'Content-Type': 'application/json',
           Authorization: token,
         },
-        body: JSON.stringify({ query: query }),
+        body: JSON.stringify({ query: `{ team(id: \"${teamId}\") ${query}  }` }),
       })
         .then((response) => response.json())
         .then((data) => {
           if (!data) return []
-          let allIssues: Issue[] = data.data.issues.nodes.map((node: any) => node as Issue)
-          return allIssues
+          let allIssues: Issue[] = data.data.team.issues.nodes.map((node: any) => IssueSchema.parse(node))
+
+          return isBacklogIncluded ? allIssues : allIssues.filter((issue) => issue.state.type !== 'backlog')
         })
         .catch((error) => {
           console.error(error)

@@ -158,9 +158,9 @@ export default function IssueDetailsView(props: Props) {
                   {/* priority */}
                   <View className="my-1">
                     <Text className={classNames(issueDetailsCardSubtitleStyle, 'my-2')}>Priority</Text>
-                    <View className="flex flex-row gap-2">
-                      {renderPriorityIcon(issue.priority)}
-                      <Text>{issue.priorityLabel}</Text>
+                    <View className="flex flex-row items-center">
+                      {renderPriorityIcon(issue.priority, 16)}
+                      <Text className="ml-2">{issue.priorityLabel}</Text>
                     </View>
                   </View>
                   {/* url */}

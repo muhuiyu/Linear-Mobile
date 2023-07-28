@@ -1,35 +1,40 @@
-import { faArrowRight } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
-import classNames from 'classnames'
 import { useEffect, useState } from 'react'
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native'
-import {
-  WorkflowStateType,
-  allWorkflowStateTypes,
-  stateIconInfo,
-  workflowStateTypeToName,
-} from '../../../models/WorkFlowState'
+import { Modal, Pressable, StyleSheet, Switch, Text, View } from 'react-native'
 
 import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown, runOnJS } from 'react-native-reanimated'
+import { capitalizeFirst } from '../../common/helpers/stringHelpers'
+import { IssueGroupedBy, ShowCompletedItemsType } from '../IssueListView'
+import FilterModalOptionRow from './FilterModalOptionRow'
 
 interface Props {
   visible: boolean
-  onChange(type: WorkflowStateType): void
   onRequestClose(): void
+  groupedBy: IssueGroupedBy
+  onChangeGroupedBy(groupedBy: IssueGroupedBy): void
+  showCompletedItemsType: ShowCompletedItemsType
+  onChangeShowCompletedItemsType(type: ShowCompletedItemsType): void
+  isShowingSubIssue: boolean
+  onChangeIsShowingSubIssue(value: boolean): void
+  isShowingEmptyGroup: boolean
+  onChangeIsShowingEmptyGroup(value: boolean): void
+  isShowingMineOnly: boolean
+  onChangeIsShowingMineOnly(value: boolean): void
 }
 
-// layout: board, list
-// grouping: project, status, assignee, priority, label, no grouping
-// status order:
-// ordering: due date, manual, title, status, priority, estimate, last updated, last created, due date, link count
-// boolean show sub-issues
-// show empty groups
-// display properties: priority, status, assignee, pull requests
-
-// separated by teams
-// show completed issues: all, past day, past week, past month, none
-
-export default function FilterModal({ visible, onChange, onRequestClose }: Props) {
+export default function FilterModal({
+  visible,
+  onRequestClose,
+  groupedBy,
+  onChangeGroupedBy,
+  showCompletedItemsType,
+  onChangeShowCompletedItemsType,
+  isShowingSubIssue,
+  onChangeIsShowingSubIssue,
+  isShowingEmptyGroup,
+  onChangeIsShowingEmptyGroup,
+  isShowingMineOnly,
+  onChangeIsShowingMineOnly,
+}: Props) {
   const [isModalVisible, setIsModalVisible] = useState(visible)
 
   useEffect(() => {
@@ -63,30 +68,57 @@ export default function FilterModal({ visible, onChange, onRequestClose }: Props
               }
             })}
           >
-            <Text className="text-sm mb-4 font-semibold px-5">Choose destination</Text>
-            {allWorkflowStateTypes.map((type, index) => {
-              let { icon, color } = stateIconInfo(type)
-
-              return (
-                <Pressable
-                  className={classNames('flex flex-row items-center py-3 px-5')}
+            <Text className="text-base mb-3 font-semibold px-5">Filters</Text>
+            <View className="px-5 py-2 border-gray-300 flex flex-row justify-between items-center">
+              <Text className="text-base">Show my issues only</Text>
+              <Switch value={isShowingMineOnly} onValueChange={onChangeIsShowingMineOnly} />
+            </View>
+            <View className="px-5 py-2 border-gray-300 flex flex-row justify-between items-center">
+              <Text className="text-base">Show sub-issues</Text>
+              <Switch value={isShowingSubIssue} onValueChange={onChangeIsShowingSubIssue} />
+            </View>
+            <View className="px-5 pt-3 pb-4 border-b-2 border-slate-200 flex flex-row justify-between items-center">
+              <Text className="text-base">Show empty groups</Text>
+              <Switch value={isShowingEmptyGroup} onValueChange={onChangeIsShowingEmptyGroup} />
+            </View>
+            <View className="px-5 py-2 border-t-2 border-slate-200">
+              <Text className="text-slate-500 py-2">Grouped by</Text>
+              {allGroupedBy.map((type) => (
+                <FilterModalOptionRow
                   key={type}
+                  title={capitalizeFirst(type)}
                   onPress={() => {
-                    onChange(type)
+                    onChangeGroupedBy(type)
                   }}
-                >
-                  <FontAwesomeIcon icon={faArrowRight} />
-                  <Text className="text-base pl-2">Move to</Text>
-                  <View className="px-2 py-1 flex flex-row items-center gap-2">
-                    <FontAwesomeIcon icon={icon} color={color} />
-                    <Text className="font-bold">{workflowStateTypeToName[type]}</Text>
-                  </View>
-                </Pressable>
-              )
-            })}
+                  isChecked={groupedBy === type}
+                />
+              ))}
+            </View>
+            <View className="px-5 py-2 border-gray-300">
+              <Text className="text-slate-500 py-2">Show completed items</Text>
+              {allShowCompletedItemsTypes.map((type) => (
+                <FilterModalOptionRow
+                  key={type}
+                  title={toNames[type]}
+                  onPress={() => {
+                    onChangeShowCompletedItemsType(type)
+                  }}
+                  isChecked={showCompletedItemsType === type}
+                />
+              ))}
+            </View>
           </Animated.View>
         )}
       </View>
     </Modal>
   )
+}
+
+const allGroupedBy: IssueGroupedBy[] = ['project', 'priority', 'status', 'label']
+const allShowCompletedItemsTypes: ShowCompletedItemsType[] = ['all', 'pastDay', 'pastWeek', 'none']
+const toNames: Record<ShowCompletedItemsType, string> = {
+  all: 'All',
+  pastDay: 'Past Day',
+  pastWeek: 'Past Week',
+  none: 'None',
 }
