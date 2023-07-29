@@ -1,19 +1,23 @@
 import { Text, View } from 'react-native'
-import useFilteredIssues from '../../hooks/useFilteredIssues'
+import useAuth from '../../hooks/useAuth'
 import useProject from '../../hooks/useProject'
+import useProjectIssues from '../../hooks/useProjectIssues'
 import { RootScreenProps } from '../../navigation/models/RootParamList'
 
 type Props = RootScreenProps<'ProjectDetails'>
 
 export default function ProjectDetailsView(props: Props) {
-  const { project } = useProject(props.route.params.projectId)
-  const { issues } = useFilteredIssues(props.route.params.projectId)
-  if (!project) {
+  const { token } = useAuth()
+  const { project } = useProject(token, props.route.params.projectId, 'default')
+  const { issues } = useProjectIssues(token, props.route.params.projectId)
+
+  if (!project || !issues) {
     return null
   }
   return (
     <View>
       <Text>{project.name}</Text>
+      <Text>{issues.length}</Text>
     </View>
   )
 }

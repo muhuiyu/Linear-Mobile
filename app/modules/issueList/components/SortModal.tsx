@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown, runOnJS } from 'react-native-reanimated'
-import { capitalizeFirst } from '../../common/helpers/stringHelpers'
+import { capitalizeFirst } from '../../../helpers/stringHelpers'
 import FilterModalOptionRow from './FilterModalOptionRow'
 
 interface Props {

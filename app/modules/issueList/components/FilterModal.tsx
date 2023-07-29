@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { Modal, Pressable, StyleSheet, Switch, Text, View } from 'react-native'
 
 import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown, runOnJS } from 'react-native-reanimated'
-import { capitalizeFirst } from '../../common/helpers/stringHelpers'
-import { IssueGroupedBy } from '../ActiveIssuesView'
+import { capitalizeFirst } from '../../../helpers/stringHelpers'
+import { IssueGroupedBy, ShowCompletedItemsType } from '../../issues/ActiveIssuesView'
 import FilterModalOptionRow from './FilterModalOptionRow'
 
 interface Props {
@@ -11,6 +11,8 @@ interface Props {
   onRequestClose(): void
   groupedBy: IssueGroupedBy
   onChangeGroupedBy(groupedBy: IssueGroupedBy): void
+  showCompletedItemsType: ShowCompletedItemsType
+  onChangeShowCompletedItemsType(type: ShowCompletedItemsType): void
   isShowingSubIssue: boolean
   onChangeIsShowingSubIssue(value: boolean): void
   isShowingEmptyGroup: boolean
@@ -19,11 +21,13 @@ interface Props {
   onChangeIsShowingMineOnly(value: boolean): void
 }
 
-export default function BacklogListFilterModal({
+export default function FilterModal({
   visible,
   onRequestClose,
   groupedBy,
   onChangeGroupedBy,
+  showCompletedItemsType,
+  onChangeShowCompletedItemsType,
   isShowingSubIssue,
   onChangeIsShowingSubIssue,
   isShowingEmptyGroup,
@@ -90,6 +94,19 @@ export default function BacklogListFilterModal({
                 />
               ))}
             </View>
+            <View className="px-5 py-2 border-gray-300">
+              <Text className="text-slate-500 py-2">Show completed items</Text>
+              {allShowCompletedItemsTypes.map((type) => (
+                <FilterModalOptionRow
+                  key={type}
+                  title={toNames[type]}
+                  onPress={() => {
+                    onChangeShowCompletedItemsType(type)
+                  }}
+                  isChecked={showCompletedItemsType === type}
+                />
+              ))}
+            </View>
           </Animated.View>
         )}
       </View>
@@ -97,4 +114,11 @@ export default function BacklogListFilterModal({
   )
 }
 
-const allGroupedBy: IssueGroupedBy[] = ['project', 'priority', 'label']
+const allGroupedBy: IssueGroupedBy[] = ['project', 'priority', 'status', 'label']
+const allShowCompletedItemsTypes: ShowCompletedItemsType[] = ['all', 'pastDay', 'pastWeek', 'none']
+const toNames: Record<ShowCompletedItemsType, string> = {
+  all: 'All',
+  pastDay: 'Past Day',
+  pastWeek: 'Past Week',
+  none: 'None',
+}

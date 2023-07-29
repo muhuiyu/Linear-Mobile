@@ -2,8 +2,8 @@ import { faBell, faFile, faFileClipboard, faFolder } from '@fortawesome/free-reg
 import { faHome } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import { useState } from 'react'
-import { View } from 'react-native'
+import { useCallback, useEffect, useState } from 'react'
+import { DeviceEventEmitter, View } from 'react-native'
 import {
   dashboardTabName,
   homeTabName,
@@ -11,7 +11,9 @@ import {
   notificationsTabName,
   projectsTabName,
 } from '../../constants/AppText'
+import { eventChangeCurrentTeam } from '../../constants/deviceEvents'
 import useAuth from '../../hooks/useAuth'
+import { Team } from '../../models/Team'
 import { RootScreenProps, useRootNavigation } from '../../navigation/models/RootParamList'
 import TabParamList from '../../navigation/models/TabParamList'
 import DashboardView from '../dashboard/DashboardView'
@@ -20,6 +22,7 @@ import IssuesView from '../issues/IssuesView'
 import NotificationsView from '../notifications/NotificationsView'
 import ProjectsView from '../projects/ProjectsView'
 import PlusButton from './components/PlusButton'
+import TeamButton from './components/TeamButton'
 
 type Props = RootScreenProps<'Home'>
 
@@ -28,6 +31,16 @@ const Tab = createBottomTabNavigator<TabParamList>()
 export default function MainTabScreen() {
   const { defaultTeamId } = useAuth()
   const [currentTeamId, setCurrentTeamId] = useState(defaultTeamId)
+  const navigation = useRootNavigation()
+
+  const onChangeCurrentTeam = useCallback((teamId: Team['id']) => {
+    setCurrentTeamId(teamId)
+  }, [])
+
+  useEffect(() => {
+    DeviceEventEmitter.addListener(eventChangeCurrentTeam, (teamId) => onChangeCurrentTeam(teamId))
+  })
+
   return (
     <Tab.Navigator screenOptions={{ headerShown: true }}>
       <Tab.Screen
@@ -42,23 +55,62 @@ export default function MainTabScreen() {
       />
       <Tab.Screen
         name="ProjectsTab"
-        component={ProjectsContent}
+        component={ProjectsView}
         options={{
           title: projectsTabName,
           tabBarIcon: ({ focused, color, size }) => {
             return <FontAwesomeIcon icon={faFolder} size={size * 0.9} color={color} />
           },
           headerRight: () => (
-            <PlusButton
-              className="pr-4"
-              onPress={() => {
-                // TODO:
-                // change
-              }}
-            />
+            <View className="flex flex-row">
+              <TeamButton
+                className="pr-4"
+                onPress={() => {
+                  navigation.navigate('ChooseTeamModal', {
+                    currentTeamId: currentTeamId,
+                  })
+                }}
+              />
+              <PlusButton
+                className="pr-4"
+                onPress={() => {
+                  // TODO:
+                }}
+              />
+            </View>
           ),
         }}
+        initialParams={{ teamId: currentTeamId }}
       />
+      {/* <Tab.Screen
+        name="IssuesTab"
+        component={IssueListView}
+        options={{
+          title: issuesTabName,
+          tabBarIcon: ({ focused, color, size }) => {
+            return <FontAwesomeIcon icon={faFile} size={size * 0.9} color={color} />
+          },
+          headerRight: () => (
+            <View className="flex flex-row">
+              <TeamButton
+                className="pr-4"
+                onPress={() => {
+                  navigation.navigate('ChooseTeamModal', {
+                    currentTeamId: currentTeamId,
+                  })
+                }}
+              />
+              <PlusButton
+                className="pr-4"
+                onPress={() => {
+                  // TODO:
+                }}
+              />
+            </View>
+          ),
+        }}
+        initialParams={{ teamId: currentTeamId }}
+      /> */}
       <Tab.Screen
         name="IssuesTab"
         component={IssuesView}
@@ -69,10 +121,12 @@ export default function MainTabScreen() {
           },
           headerRight: () => (
             <View className="flex flex-row">
-              <PlusButton
+              <TeamButton
                 className="pr-4"
                 onPress={() => {
-                  // TODO:
+                  navigation.navigate('ChooseTeamModal', {
+                    currentTeamId: currentTeamId,
+                  })
                 }}
               />
               <PlusButton
@@ -124,18 +178,6 @@ const HomeContent = () => {
     // />
   )
 }
-
-const ProjectsContent = () => {
-  const navigation = useRootNavigation()
-  return (
-    <ProjectsView onPressProject={(projectId) => navigation.navigate('ProjectDetails', { projectId: projectId })} />
-  )
-}
-
-// const IssuesContent = () => {
-//   const navigation = useRootNavigation()
-//   return <IssuesView />
-// }
 
 const DashboardContent = () => {
   const navigation = useRootNavigation()

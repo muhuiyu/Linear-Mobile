@@ -15,19 +15,31 @@ import { WorkflowState } from '../../models/WorkFlowState'
 import { IssueTabScreenProps } from '../../navigation/models/IssueTabParamList'
 import { useRootNavigation } from '../../navigation/models/RootParamList'
 import SearchBar from '../common/components/SearchBar'
-import FilterModal from './components/FilterModal'
-import IssueCard from './components/IssueCard'
-import IssueListRow from './components/IssueListRow'
-import renderSectionHeader from './components/SectionHeader'
-import SortModal, { IssueListLayout, IssueSortedBy } from './components/SortModal'
+import { safeAreaStyle } from '../common/styles/pageStyle'
+import FilterModal from '../issueList/components/FilterModal'
+import IssueCard from '../issueList/components/IssueCard'
+import IssueListRow from '../issueList/components/IssueListRow'
+import renderSectionHeader from '../issueList/components/SectionHeader'
+import SortModal, { IssueListLayout, IssueSortedBy } from '../issueList/components/SortModal'
+import EmptyView from './components/EmptyView'
 
 type Props = IssueTabScreenProps<'ActiveIssues'>
 
 export default function ActiveIssuesView(props: Props) {
   // Fetch issues
   const { token } = useAuth()
-  const { activeIssues: issues, isLoading } = useAllIssues(token, props.route.params.teamId)
+  const [currentTeamId, setCurrentTeamId] = useState(props.route.params.teamId)
+  const [currentProjectId, setCurrentProjectId] = useState(props.route.params.projectId)
+  const { activeIssues: issues, isLoading } = useAllIssues(token, currentTeamId, currentProjectId)
   const { currentUser } = useCurrentUser(token, 'default')
+
+  // useEffect(() => {
+  //   DeviceEventEmitter.addListener(eventChangeCurrentTeam, (teamId) => () => {
+  //     setCurrentTeamId(teamId)
+  //     // TODO: fix bug
+  //     console.log('should reload data')
+  //   })
+  // })
 
   // navigation
   const navigation = useRootNavigation()
@@ -50,7 +62,7 @@ export default function ActiveIssuesView(props: Props) {
 
   // Search issues
   const [searchText, setSearchText] = useState('')
-  const filterIssues: Issue[] = useMemo(() => {
+  const filteredIssues: Issue[] = useMemo(() => {
     if (!issues) return []
 
     // apply all filters
@@ -83,7 +95,7 @@ export default function ActiveIssuesView(props: Props) {
   const groupedIssues: GroupedIssue[] = useMemo(() => {
     switch (groupedBy) {
       case 'priority':
-        return filterIssues.reduce((accumulator, issue) => {
+        return filteredIssues.reduce((accumulator, issue) => {
           const existingGroup = accumulator.find((group) => group.header === issue.priority)
 
           if (existingGroup) {
@@ -98,7 +110,7 @@ export default function ActiveIssuesView(props: Props) {
           return accumulator
         }, [] as GroupedIssue[])
       case 'project':
-        return filterIssues.reduce((accumulator, issue) => {
+        return filteredIssues.reduce((accumulator, issue) => {
           const existingGroup = accumulator.find((group) => (group.header as Project).id === issue.project.id)
 
           if (existingGroup) {
@@ -112,7 +124,7 @@ export default function ActiveIssuesView(props: Props) {
       case 'label':
         const accumulator: GroupedIssue[] = []
 
-        filterIssues.forEach((issue) => {
+        filteredIssues.forEach((issue) => {
           issue.labels?.forEach((label) => {
             const existingGroup = accumulator.find((group) => (group.header as IssueLabel).id === label.id)
             if (existingGroup) {
@@ -126,7 +138,7 @@ export default function ActiveIssuesView(props: Props) {
         return accumulator
       default:
         // status
-        return filterIssues.reduce((accumulator, issue) => {
+        return filteredIssues.reduce((accumulator, issue) => {
           const existingGroup = accumulator.find((group) => (group.header as WorkflowState).id === issue.state.id)
 
           if (existingGroup) {
@@ -139,7 +151,7 @@ export default function ActiveIssuesView(props: Props) {
           return accumulator
         }, [] as GroupedIssue[])
     }
-  }, [filterIssues, groupedBy, isShowingEmptyGroup])
+  }, [filteredIssues, groupedBy, isShowingEmptyGroup])
 
   // Render issue row
   const renderIssueRow = ({ item }: { item: Issue }) => {
@@ -175,8 +187,8 @@ export default function ActiveIssuesView(props: Props) {
                       <Text>{title}</Text>
                       <Text className="text-gray-500 ml-2">{section.data.length}</Text>
                     </View>
-                    <View className="bg-gray-100 mt-2 h-full w-[300px]">
-                      <ScrollView className="m-2" showsVerticalScrollIndicator={false}>
+                    <View className="bg-gray-100 mt-2 flex-1 w-[300px]">
+                      <ScrollView className="m-2 flex-1" showsVerticalScrollIndicator={false}>
                         {section.data.map((issue) => (
                           <IssueCard key={issue.id} {...{ issue, onPressIssue }} />
                         ))}
@@ -217,7 +229,7 @@ export default function ActiveIssuesView(props: Props) {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['left', 'right', 'bottom']}>
+    <SafeAreaView className={safeAreaStyle} edges={['left', 'right']}>
       <View className="h-full">
         {isLoading ? (
           <View className="justify-center h-full">
@@ -234,7 +246,7 @@ export default function ActiveIssuesView(props: Props) {
               >
                 <FontAwesomeIcon icon={faSliders} />
               </Pressable>
-              <SearchBar value={searchText} onChangeText={setSearchText} />
+              <SearchBar value={searchText} placeholder="Search issues" onChangeText={setSearchText} />
               <Pressable
                 className="pl-2"
                 onPress={() => {
@@ -244,13 +256,7 @@ export default function ActiveIssuesView(props: Props) {
                 <FontAwesomeIcon icon={faSort} />
               </Pressable>
             </View>
-            {_.isEmpty(issues) ? (
-              <View>
-                <Text>No issues found</Text>
-              </View>
-            ) : (
-              renderPageContent()
-            )}
+            {_.isEmpty(filteredIssues) ? <EmptyView /> : renderPageContent()}
           </>
         )}
       </View>

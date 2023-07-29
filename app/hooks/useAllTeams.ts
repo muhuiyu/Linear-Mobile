@@ -6,7 +6,7 @@ export default function useAllTeams(token: string) {
   const { data: teams, isFetching } = useQuery({
     queryKey: [teamsQueryKey],
     queryFn: async () => {
-      const query = `{ projects { nodes { id title issue } } }`
+      const query = `{ teams { nodes { id name } } }`
 
       const response = await fetch(apiEndPoint, {
         method: 'POST',
@@ -18,7 +18,7 @@ export default function useAllTeams(token: string) {
       })
 
       const data = await response.json()
-      return data.data.projects.nodes
+      return data.data.teams.nodes
     },
   })
 

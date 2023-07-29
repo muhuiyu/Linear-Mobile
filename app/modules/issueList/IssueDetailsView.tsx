@@ -10,27 +10,31 @@ import useIssue from '../../hooks/useIssue'
 import { Issue } from '../../models/Issue'
 import { RootScreenProps, useRootNavigation } from '../../navigation/models/RootParamList'
 import ActionSheet from '../common/components/ActionSheet'
-import IssueListRow, { renderPriorityIcon } from './components/IssueListRow'
-import StateListModal from './components/StateListModal'
-import UserNameAvatarView from './components/UserNameAvatarView'
+import { safeAreaStyleGray } from '../common/styles/pageStyle'
+import IssueListRow, { renderPriorityIcon } from '../issueList/components/IssueListRow'
+import StateListModal from '../issueList/components/StateListModal'
+import UserNameAvatarView from '../issueList/components/UserNameAvatarView'
+import {
+  issueDetailsCardContentStyle,
+  issueDetailsCardPlaceholderStyle,
+  issueDetailsCardStyle,
+  issueDetailsCardSubtitleStyle,
+  issueDetailsCardTitleStyle,
+} from '../issueList/styles/IssueDetailsViewStyle'
 
 type Props = RootScreenProps<'IssueDetails'>
-
-const issueDetailsCardStyle = 'bg-white p-4 mt-4 w-full rounded-md'
-const issueDetailsCardTitleStyle = 'text-base font-medium'
-const issueDetailsCardContentStyle = 'text-sm text-black'
-const issueDetailsCardPlaceholderStyle = 'text-sm text-gray-400'
-const issueDetailsCardSubtitleStyle = 'text-xs text-gray-600'
 
 export default function IssueDetailsView(props: Props) {
   const { token } = useAuth()
   const { issue, isLoading } = useIssue(token, props.route.params.issueId, 'full')
 
-  //   console.log(issue)
+  // TODO: fix description bug
+  console.log(issue?.description)
 
   const hasDescription = !_.isEmpty(issue?.description)
   const hasLabels = !_.isEmpty(issue?.labels)
 
+  // Navigation
   const navigation = useRootNavigation()
   const onPressIssue = (issueId: Issue['id']) => {
     navigation.push('IssueDetails', { issueId: issueId })
@@ -38,30 +42,26 @@ export default function IssueDetailsView(props: Props) {
 
   // StateList
   const [isShowingStateListModal, setShowingStateListModal] = useState(false)
+  // Activity bottom sheet (show comments or history)
+  const [isShowingActivitySelector, setIsShowingActivitySelector] = useState(false)
 
   // Linear link
   const onPressLinkButton = useCallback(async () => {
     if (!issue?.url || _.isEmpty(issue?.url)) return
-    // Checking if the link is supported for links with custom URL scheme.
     const supported = await Linking.canOpenURL(issue?.url)
 
     if (supported) {
-      // Opening the link with some app, if the URL scheme is "http" the web link should be opened
-      // by some browser in the mobile
       await Linking.openURL(issue?.url)
     } else {
       Alert.alert(`Don't know how to open this URL: ${issue?.url}`)
     }
   }, [issue])
 
-  // Activity bottom sheet
-  const [isShowingActivitySelector, setIsShowingActivitySelector] = useState(false)
-
   if (!issue) {
     return null
   }
   return (
-    <SafeAreaView className="flex-1 bg-gray-100" edges={['left', 'right', 'bottom']}>
+    <SafeAreaView className={safeAreaStyleGray} edges={['left', 'right', 'bottom']}>
       <View className="p-4 h-full">
         {isLoading ? (
           <View className="justify-center h-full">
@@ -187,7 +187,7 @@ export default function IssueDetailsView(props: Props) {
                     </Pressable>
                   </View>
                   {/* body */}
-                  {/* todo: change to activities */}
+                  {/* TODO: change to activities */}
                   {!_.isEmpty(issue?.comments) &&
                     issue?.comments?.map((comment) => {
                       return (
@@ -212,7 +212,7 @@ export default function IssueDetailsView(props: Props) {
                 setShowingStateListModal(false)
               }}
               onChange={() => {
-                // todo
+                // TODO:
                 setShowingStateListModal(false)
               }}
             ></StateListModal>

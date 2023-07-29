@@ -60,7 +60,11 @@ export declare class IssueLabelFull extends Request {
 
 export const IssueLabelSchema = z.object({
   color: z.string(),
-  description: z.string().nullable(),
+  description: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((arg) => (!arg ? undefined : arg)),
   id: z.string(),
   name: z.string(),
 })

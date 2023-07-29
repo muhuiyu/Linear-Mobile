@@ -2,11 +2,12 @@ import { faQuestionCircle } from '@fortawesome/free-regular-svg-icons'
 import { IconDefinition } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import { Text, View } from 'react-native'
+import { linearIconToIconDefinition } from '../../../helpers/iconHelpers'
 import { priorityNumberToString } from '../../../models/Issue'
 import { IssueLabel } from '../../../models/IssueLabel'
-import { Project, linearIconToIconDefinition } from '../../../models/Project'
+import { Project } from '../../../models/Project'
 import { WorkflowState, WorkflowStateType, stateIconInfo } from '../../../models/WorkFlowState'
-import { IssueGroupedBy } from '../ActiveIssuesView'
+import { IssueGroupedBy } from '../../issues/ActiveIssuesView'
 
 // Render list header
 const renderSectionHeader = (
@@ -22,7 +23,6 @@ const renderSectionHeader = (
     case 'project':
       const project = header as Project
       title = project.name
-      console.log('project icon', project.icon)
       icon = linearIconToIconDefinition[project.icon ?? ''] ?? faQuestionCircle
       color = project.color
       break

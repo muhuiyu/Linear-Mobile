@@ -4,7 +4,7 @@ import { Team } from '../../models/Team'
 
 type TabParamList = {
   HomeTab: undefined
-  ProjectsTab: undefined
+  ProjectsTab: { teamId: Team['id'] }
   IssuesTab: { teamId: Team['id'] }
   DashboardTab: undefined
   NotificationsTab: undefined

@@ -3,6 +3,7 @@ import { Button, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Text } from 'react-native-svg'
 import useAuth from '../../hooks/useAuth'
+import { safeAreaStyle } from '../common/styles/pageStyle'
 
 interface Props {}
 
@@ -20,7 +21,7 @@ export default function LoginView(props: Props) {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['left', 'right', 'bottom']}>
+    <SafeAreaView className={safeAreaStyle} edges={['left', 'right', 'bottom']}>
       <View className="p-4 h-full">
         <Text>Enter personal token</Text>
         <TextInput

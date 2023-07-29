@@ -2,7 +2,7 @@ import { faSliders, faSort } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import _ from 'lodash'
 import { useCallback, useMemo, useState } from 'react'
-import { ActivityIndicator, Pressable, SectionList, Text, View } from 'react-native'
+import { ActivityIndicator, Pressable, SectionList, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import useAllIssues from '../../hooks/useAllIssues'
 import useAuth from '../../hooks/useAuth'
@@ -14,8 +14,10 @@ import { WorkflowState } from '../../models/WorkFlowState'
 import { IssueTabScreenProps } from '../../navigation/models/IssueTabParamList'
 import { useRootNavigation } from '../../navigation/models/RootParamList'
 import SearchBar from '../common/components/SearchBar'
+import { safeAreaStyle } from '../common/styles/pageStyle'
 import BacklogListFilterModal from './components/BacklogListFilterModal'
 import BacklogSortModal from './components/BacklogSortModal'
+import EmptyView from './components/EmptyView'
 import IssueListRow from './components/IssueListRow'
 import renderSectionHeader from './components/SectionHeader'
 import { IssueSortedBy } from './components/SortModal'
@@ -25,7 +27,9 @@ type Props = IssueTabScreenProps<'IssueBacklog'>
 export default function IssueBacklogListView(props: Props) {
   // Fetch issues
   const { token } = useAuth()
-  const { backlogIssues: issues, isLoading } = useAllIssues(token, props.route.params.teamId)
+  const [currentTeamId, setCurrentTeamId] = useState(props.route.params.teamId)
+  const [currentProjectId, setCurrentProjectId] = useState(props.route.params.projectId)
+  const { backlogIssues: issues, isLoading } = useAllIssues(token, currentTeamId, currentProjectId)
   const { currentUser } = useCurrentUser(token, 'default')
 
   // set filter
@@ -47,7 +51,7 @@ export default function IssueBacklogListView(props: Props) {
 
   // Search issues
   const [searchText, setSearchText] = useState('')
-  const filterIssues: Issue[] = useMemo(() => {
+  const filteredIssues: Issue[] = useMemo(() => {
     // apply search
     // apply all filters
     let issueList = issues.filter((issue) => {
@@ -69,7 +73,7 @@ export default function IssueBacklogListView(props: Props) {
     let groups: GroupedIssue[] = []
     switch (groupedBy) {
       case 'priority':
-        groups = filterIssues.reduce((accumulator, issue) => {
+        groups = filteredIssues.reduce((accumulator, issue) => {
           const existingGroup = accumulator.find((group) => group.header === issue.priority)
 
           if (existingGroup) {
@@ -85,7 +89,7 @@ export default function IssueBacklogListView(props: Props) {
         }, [] as GroupedIssue[])
       case 'label':
         const accumulator: GroupedIssue[] = []
-        filterIssues.forEach((issue) => {
+        filteredIssues.forEach((issue) => {
           issue.labels?.forEach((label) => {
             const existingGroup = accumulator.find((group) => (group.header as IssueLabel).id === label.id)
             if (existingGroup) {
@@ -99,7 +103,7 @@ export default function IssueBacklogListView(props: Props) {
         groups = accumulator
       default:
         // Projects
-        groups = filterIssues.reduce((accumulator, issue) => {
+        groups = filteredIssues.reduce((accumulator, issue) => {
           const existingGroup = accumulator.find((group) => (group.header as Project).id === issue.project.id)
 
           if (existingGroup) {
@@ -141,7 +145,7 @@ export default function IssueBacklogListView(props: Props) {
         })
     }
     return groups
-  }, [filterIssues, groupedBy, isShowingEmptyGroup, sortedBy])
+  }, [filteredIssues, groupedBy, isShowingEmptyGroup, sortedBy])
 
   // Render issue row
   const renderIssueRow = ({ item }: { item: Issue }) => {
@@ -169,7 +173,7 @@ export default function IssueBacklogListView(props: Props) {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['left', 'right', 'bottom']}>
+    <SafeAreaView className={safeAreaStyle} edges={['left', 'right', 'bottom']}>
       <View className="h-full">
         {isLoading ? (
           <View className="justify-center h-full">
@@ -186,7 +190,7 @@ export default function IssueBacklogListView(props: Props) {
               >
                 <FontAwesomeIcon icon={faSliders} />
               </Pressable>
-              <SearchBar value={searchText} onChangeText={setSearchText} />
+              <SearchBar value={searchText} placeholder="Search issues" onChangeText={setSearchText} />
               <Pressable
                 className="pl-2"
                 onPress={() => {
@@ -196,13 +200,7 @@ export default function IssueBacklogListView(props: Props) {
                 <FontAwesomeIcon icon={faSort} />
               </Pressable>
             </View>
-            {_.isEmpty(issues) ? (
-              <View>
-                <Text>No issues found</Text>
-              </View>
-            ) : (
-              renderPageContent()
-            )}
+            {_.isEmpty(filteredIssues) ? <EmptyView /> : renderPageContent()}
           </>
         )}
       </View>

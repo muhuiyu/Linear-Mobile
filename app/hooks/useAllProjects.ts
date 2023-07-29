@@ -1,12 +1,13 @@
 import { Project } from '@linear/sdk'
 import { useQuery } from '@tanstack/react-query'
 import { apiEndPoint } from '../constants/Environment'
-import { projectQuery } from '../models/Project'
+import { ProjectSchema, projectQuery } from '../models/Project'
+import { Team } from '../models/Team'
 import { projectsQueryKey } from './queryKeys'
 
-const query = `{ teams { nodes { projects { nodes { ${projectQuery} } } } } }`
+const query = `{ projects { nodes { ${projectQuery} } } }`
 
-export default function useAllProjects(token: string) {
+export default function useAllProjects(token: string, teamId: Team['id']) {
   const { data: projects, isFetching } = useQuery({
     queryKey: [projectsQueryKey],
     queryFn: async () => {
@@ -16,18 +17,12 @@ export default function useAllProjects(token: string) {
           'Content-Type': 'application/json',
           Authorization: token,
         },
-        body: JSON.stringify({ query: query }),
+        body: JSON.stringify({ query: `{ team(id: \"${teamId}\") ${query}  }` }),
       })
         .then((response) => response.json())
         .then((data) => {
-          let teams = data.data.teams.nodes
-
-          let allProjects: Project[] = []
-          teams.map((team: any) => {
-            let projects = team.projects.nodes.map((node: any) => node as Project)
-            Array.prototype.push.apply(allProjects, projects)
-          })
-
+          if (!data) return []
+          let allProjects: Project[] = data.data.team.projects.nodes.map((node: any) => ProjectSchema.parse(node))
           return allProjects
         })
         .catch((error) => {

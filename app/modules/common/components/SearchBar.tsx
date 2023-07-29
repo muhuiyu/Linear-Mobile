@@ -4,10 +4,11 @@ import { TextInput, View } from 'react-native'
 
 interface Props {
   value: string
+  placeholder: string
   onChangeText(value: string): void
 }
 
-export default function SearchBar({ value, onChangeText }: Props) {
+export default function SearchBar({ value, placeholder, onChangeText }: Props) {
   return (
     <View className="flex flex-1 flex-row justify-center bg-gray-100 rounded-lg">
       <View className="h-10 w-10 items-center justify-center">
@@ -15,7 +16,7 @@ export default function SearchBar({ value, onChangeText }: Props) {
       </View>
       <TextInput
         className="flex-1 h-10"
-        placeholder="Search issues"
+        placeholder={placeholder}
         placeholderTextColor="#888"
         value={value}
         onChangeText={onChangeText}

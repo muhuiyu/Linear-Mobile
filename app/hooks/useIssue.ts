@@ -9,7 +9,6 @@ export default function useIssue(token: string, issueId: Issue['id'], type: UseI
   const { data: issue, isFetching } = useQuery({
     queryKey: [issueQueryKey],
     queryFn: async () => {
-      console.log(issueId)
       let query = ''
       switch (type) {
         case 'basic':

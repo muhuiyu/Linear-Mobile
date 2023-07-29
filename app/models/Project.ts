@@ -1,5 +1,3 @@
-import { IconDefinition, faCalendar } from '@fortawesome/free-regular-svg-icons'
-import { faBolt, faBook, faFire, faMusic, faTerminal, faVideo } from '@fortawesome/free-solid-svg-icons'
 import { z } from 'zod'
 
 export interface Project {
@@ -7,15 +5,37 @@ export interface Project {
   icon?: string
   id: string
   name: string
+  description?: string
+  progress?: number
+  sortOrder: number
+  url: string
 }
 
-export const projectQuery = 'color icon id name'
+// without progress, description
+export const projectQuery = 'color icon id name sortOrder url'
+export const projectFullQuery = `color icon id name sortOrder url progress description`
 
 export const ProjectSchema = z.object({
   id: z.string(),
   color: z.string(),
-  icon: z.string().optional(),
+  icon: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((arg) => (!arg ? undefined : arg)),
   name: z.string(),
+  description: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((arg) => (!arg ? undefined : arg)),
+  progress: z
+    .number()
+    .optional()
+    .nullable()
+    .transform((arg) => (!arg ? undefined : arg)),
+  sortOrder: z.number(),
+  url: z.string(),
 })
 
 export interface ProjectFull {
@@ -150,15 +170,3 @@ const allProjectKeys: (keyof ProjectFull)[] = [
   'updatedAt',
   'url',
 ]
-
-export const projectFullQuery = '{ ' + allProjectKeys.join(' ') + ' }'
-
-export const linearIconToIconDefinition: Record<string, IconDefinition> = {
-  MusicKey: faMusic,
-  Book: faBook,
-  Fire: faFire,
-  Calendar: faCalendar,
-  Bolt: faBolt,
-  Terminal: faTerminal,
-  Video: faVideo,
-}
