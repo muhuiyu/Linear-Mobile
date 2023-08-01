@@ -3,22 +3,18 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import classNames from 'classnames'
 import { useEffect, useState } from 'react'
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native'
-import {
-  WorkflowStateType,
-  allWorkflowStateTypes,
-  stateIconInfo,
-  workflowStateTypeToName,
-} from '../../../models/WorkFlowState'
+import { WorkflowState, stateIconInfo } from '../../../models/WorkFlowState'
 
 import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown, runOnJS } from 'react-native-reanimated'
 
 interface Props {
   visible: boolean
-  onChange(type: WorkflowStateType): void
+  workflowStates: WorkflowState[]
+  onChange(state: WorkflowState): void
   onRequestClose(): void
 }
 
-export default function StateListModal({ visible, onChange, onRequestClose }: Props) {
+export default function StateListModal({ visible, workflowStates, onChange, onRequestClose }: Props) {
   const [isModalVisible, setIsModalVisible] = useState(visible)
 
   useEffect(() => {
@@ -53,22 +49,22 @@ export default function StateListModal({ visible, onChange, onRequestClose }: Pr
             })}
           >
             <Text className="text-sm mb-4 font-semibold px-5">Choose destination</Text>
-            {allWorkflowStateTypes.map((type, index) => {
-              let { icon, color } = stateIconInfo(type)
+            {workflowStates.map((state, index) => {
+              let { icon, color } = stateIconInfo(state)
 
               return (
                 <Pressable
                   className={classNames('flex flex-row items-center py-3 px-5')}
-                  key={type}
+                  key={state.id}
                   onPress={() => {
-                    onChange(type)
+                    onChange(state)
                   }}
                 >
                   <FontAwesomeIcon icon={faArrowRight} />
                   <Text className="text-base pl-2">Move to</Text>
                   <View className="px-2 py-1 flex flex-row items-center gap-2">
                     <FontAwesomeIcon icon={icon} color={color} />
-                    <Text className="font-bold">{workflowStateTypeToName[type]}</Text>
+                    <Text className="font-bold">{state.name}</Text>
                   </View>
                 </Pressable>
               )

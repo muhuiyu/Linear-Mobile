@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown, runOnJS } from 'react-native-reanimated'
-import { capitalizeFirst } from '../../../helpers/stringHelpers'
-import FilterModalOptionRow from './FilterModalOptionRow'
-import { IssueSortedBy } from './SortModal'
+import { capitalizeFirst } from '../../../../helpers/stringHelpers'
+import FilterModalOptionRow from '../FilterModalOptionRow'
+import { IssueSortedBy } from '../SortModal'
 
 interface Props {
   visible: boolean
@@ -67,4 +67,4 @@ export default function BacklogSortModal({ visible, onRequestClose, sortedBy, on
   )
 }
 
-const allSortedBy: IssueSortedBy[] = ['status', 'priority', 'identifier', 'title', 'manual', 'dueDate']
+const allSortedBy: IssueSortedBy[] = ['status', 'priority', 'identifier', 'title', 'manual']

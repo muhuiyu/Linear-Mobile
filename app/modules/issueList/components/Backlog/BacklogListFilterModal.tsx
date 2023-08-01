@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import { Modal, Pressable, StyleSheet, Switch, Text, View } from 'react-native'
 
 import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown, runOnJS } from 'react-native-reanimated'
-import { capitalizeFirst } from '../../../helpers/stringHelpers'
-import { IssueGroupedBy } from '../../issues/ActiveIssuesView'
-import FilterModalOptionRow from './FilterModalOptionRow'
+import { capitalizeFirst } from '../../../../helpers/stringHelpers'
+
+import { IssueGroupedBy } from '../../ActiveIssuesView'
+import FilterModalOptionRow from '../FilterModalOptionRow'
 
 interface Props {
   visible: boolean

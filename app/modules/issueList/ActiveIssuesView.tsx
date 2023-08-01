@@ -1,8 +1,8 @@
-import { faSliders, faSort } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faSliders, faSort } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import _ from 'lodash'
 import { useCallback, useMemo, useState } from 'react'
-import { ActivityIndicator, Pressable, SectionList, Text, View } from 'react-native'
+import { Pressable, SectionList, Text, View } from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import useAllIssues from '../../hooks/useAllIssues'
@@ -14,14 +14,16 @@ import { Project } from '../../models/Project'
 import { WorkflowState } from '../../models/WorkFlowState'
 import { IssueTabScreenProps } from '../../navigation/models/IssueTabParamList'
 import { useRootNavigation } from '../../navigation/models/RootParamList'
+import LoadingSpinner from '../common/components/LoadingSpinner'
 import SearchBar from '../common/components/SearchBar'
 import { safeAreaStyle } from '../common/styles/pageStyle'
 import FilterModal from '../issueList/components/FilterModal'
-import IssueCard from '../issueList/components/IssueCard'
-import IssueListRow from '../issueList/components/IssueListRow'
-import renderSectionHeader from '../issueList/components/SectionHeader'
 import SortModal, { IssueListLayout, IssueSortedBy } from '../issueList/components/SortModal'
+import IssueCard from './components/BoardView/IssueCard'
 import EmptyView from './components/EmptyView'
+import { renderItemSeparator } from './components/ItemSeparator'
+import IssueListRow from './components/ListView/IssueListRow'
+import renderSectionHeader from './components/ListView/SectionHeader'
 
 type Props = IssueTabScreenProps<'ActiveIssues'>
 
@@ -44,7 +46,7 @@ export default function ActiveIssuesView(props: Props) {
   // navigation
   const navigation = useRootNavigation()
   const onPressIssue = useCallback((issueId: Issue['id']) => {
-    navigation.push('IssueDetails', { issueId: issueId })
+    navigation.push('IssueDetails', { issueId: issueId, teamId: props.route.params.teamId })
   }, [])
 
   // set filter
@@ -155,7 +157,11 @@ export default function ActiveIssuesView(props: Props) {
 
   // Render issue row
   const renderIssueRow = ({ item }: { item: Issue }) => {
-    return <IssueListRow key={item.id} {...{ issue: item, onPressIssue }} />
+    return <IssueListRow key={item.id} {...{ issue: item, onPressIssue, groupedBy }} />
+  }
+
+  const onPressAddIssue = (groupedBy: IssueGroupedBy, header: WorkflowState | Project | IssueLabel | number) => {
+    // TODO:
   }
 
   const renderPageContent = () => {
@@ -183,14 +189,19 @@ export default function ActiveIssuesView(props: Props) {
 
                 return (
                   <View className="mx-4" key={index}>
-                    <View className="flex flex-row bg-gray-100 py-2 pl-2 w-[300px]">
-                      <Text>{title}</Text>
-                      <Text className="text-gray-500 ml-2">{section.data.length}</Text>
+                    <View className="flex flex-row bg-gray-100 py-2 pl-3 w-[300px] justify-between items-center">
+                      <View className="flex flex-row items-center">
+                        <Text>{title}</Text>
+                        <Text className="text-gray-500 ml-2">{section.data.length}</Text>
+                      </View>
+                      <Pressable className="px-3" onPress={() => onPressAddIssue(section.groupedBy, section.header)}>
+                        <FontAwesomeIcon icon={faPlus} size={12} />
+                      </Pressable>
                     </View>
                     <View className="bg-gray-100 mt-2 flex-1 w-[300px]">
                       <ScrollView className="m-2 flex-1" showsVerticalScrollIndicator={false}>
                         {section.data.map((issue) => (
-                          <IssueCard key={issue.id} {...{ issue, onPressIssue }} />
+                          <IssueCard key={issue.id} {...{ issue, onPressIssue, groupedBy }} />
                         ))}
                       </ScrollView>
                     </View>
@@ -210,14 +221,14 @@ export default function ActiveIssuesView(props: Props) {
       case 'list':
         return (
           <SectionList
-            className="pt-2"
+            className="mt-2"
             sections={groupedIssues}
             keyExtractor={(item) => item.id}
             renderItem={renderIssueRow}
+            ItemSeparatorComponent={renderItemSeparator}
             renderSectionHeader={({ section: { groupedBy, header, data } }) =>
-              renderSectionHeader(groupedBy, header, data.length)
+              renderSectionHeader(groupedBy, header, data.length, onPressAddIssue)
             }
-            renderSectionFooter={() => <View className="pb-2"></View>}
           />
         )
     }
@@ -232,9 +243,7 @@ export default function ActiveIssuesView(props: Props) {
     <SafeAreaView className={safeAreaStyle} edges={['left', 'right']}>
       <View className="h-full">
         {isLoading ? (
-          <View className="justify-center h-full">
-            <ActivityIndicator size="large" />
-          </View>
+          <LoadingSpinner />
         ) : (
           <>
             <View className="flex flex-row p-4 items-center">

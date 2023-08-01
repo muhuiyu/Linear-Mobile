@@ -10,7 +10,7 @@ interface Props {
 
 export default function FilterModalOptionRow({ title, onPress, isChecked }: Props) {
   return (
-    <Pressable className="flex flex-row justify-between" onPress={onPress}>
+    <Pressable className="flex flex-row justify-between items-center" onPress={onPress}>
       <Text className="text-base py-2">{title}</Text>
       {isChecked && <FontAwesomeIcon icon={faCheck} />}
     </Pressable>

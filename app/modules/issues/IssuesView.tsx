@@ -25,7 +25,7 @@ export default function IssuesView(props: Props) {
         }}
       >
         <View className="h-10 w-10 justify-center rounded-lg bg-gray-50 items-center">
-          <FontAwesomeIcon icon={faBars} size={24} />
+          <FontAwesomeIcon icon={faBars} size={20} />
         </View>
         <View className="flex-1 flex flex-row border-b ml-2 border-gray-300 justify-between items-center">
           <View className="py-3">
@@ -64,8 +64,12 @@ export default function IssuesView(props: Props) {
   )
 }
 
+// This might be redundant...
 const options = [
   {
     title: 'My issues',
+  },
+  {
+    title: 'All issues', // including done
   },
 ]

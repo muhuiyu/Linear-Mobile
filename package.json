@@ -26,6 +26,7 @@
     "expo-status-bar": "~1.4.4",
     "lodash": "^4.17.21",
     "luxon": "^3.3.0",
+    "moment": "^2.29.4",
     "nativewind": "^2.0.11",
     "react": "18.2.0",
     "react-native": "0.71.8",

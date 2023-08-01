@@ -2,7 +2,7 @@ import { faSliders, faSort } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import _ from 'lodash'
 import { useCallback, useMemo, useState } from 'react'
-import { ActivityIndicator, Pressable, SectionList, View } from 'react-native'
+import { Pressable, SectionList, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import useAllIssues from '../../hooks/useAllIssues'
 import useAuth from '../../hooks/useAuth'
@@ -13,13 +13,15 @@ import { Project } from '../../models/Project'
 import { WorkflowState } from '../../models/WorkFlowState'
 import { IssueTabScreenProps } from '../../navigation/models/IssueTabParamList'
 import { useRootNavigation } from '../../navigation/models/RootParamList'
+import LoadingSpinner from '../common/components/LoadingSpinner'
 import SearchBar from '../common/components/SearchBar'
 import { safeAreaStyle } from '../common/styles/pageStyle'
-import BacklogListFilterModal from './components/BacklogListFilterModal'
-import BacklogSortModal from './components/BacklogSortModal'
+import BacklogListFilterModal from './components/Backlog/BacklogListFilterModal'
+import BacklogSortModal from './components/Backlog/BacklogSortModal'
 import EmptyView from './components/EmptyView'
-import IssueListRow from './components/IssueListRow'
-import renderSectionHeader from './components/SectionHeader'
+import { renderItemSeparator } from './components/ItemSeparator'
+import IssueListRow from './components/ListView/IssueListRow'
+import renderSectionHeader from './components/ListView/SectionHeader'
 import { IssueSortedBy } from './components/SortModal'
 
 type Props = IssueTabScreenProps<'IssueBacklog'>
@@ -46,7 +48,7 @@ export default function IssueBacklogListView(props: Props) {
   // navigation
   const navigation = useRootNavigation()
   const onPressIssue = useCallback((issueId: Issue['id']) => {
-    navigation.push('IssueDetails', { issueId: issueId })
+    navigation.push('IssueDetails', { issueId: issueId, teamId: props.route.params.teamId })
   }, [])
 
   // Search issues
@@ -149,7 +151,11 @@ export default function IssueBacklogListView(props: Props) {
 
   // Render issue row
   const renderIssueRow = ({ item }: { item: Issue }) => {
-    return <IssueListRow key={item.id} {...{ issue: item, onPressIssue }} />
+    return <IssueListRow key={item.id} {...{ issue: item, onPressIssue, groupedBy }} />
+  }
+
+  const onPressAddIssue = () => {
+    // TODO:
   }
 
   const renderPageContent = () => {
@@ -159,10 +165,10 @@ export default function IssueBacklogListView(props: Props) {
         sections={groupedIssues}
         keyExtractor={(item) => item.id}
         renderItem={renderIssueRow}
+        ItemSeparatorComponent={renderItemSeparator}
         renderSectionHeader={({ section: { groupedBy, header, data } }) =>
-          renderSectionHeader(groupedBy, header, data.length)
+          renderSectionHeader(groupedBy, header, data.length, onPressAddIssue)
         }
-        renderSectionFooter={() => <View className="pb-2"></View>}
       />
     )
   }
@@ -176,9 +182,7 @@ export default function IssueBacklogListView(props: Props) {
     <SafeAreaView className={safeAreaStyle} edges={['left', 'right', 'bottom']}>
       <View className="h-full">
         {isLoading ? (
-          <View className="justify-center h-full">
-            <ActivityIndicator size="large" />
-          </View>
+          <LoadingSpinner />
         ) : (
           <>
             <View className="flex flex-row p-4 items-center">

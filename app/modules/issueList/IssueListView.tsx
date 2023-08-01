@@ -8,6 +8,7 @@ const Tab = createMaterialTopTabNavigator<IssueTabParamList>()
 
 type Props = RootScreenProps<'IssueList'>
 
+// Reusable
 export default function IssueListView(props: Props) {
   return (
     <Tab.Navigator screenOptions={{ swipeEnabled: false }}>

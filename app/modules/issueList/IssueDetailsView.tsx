@@ -1,43 +1,41 @@
-import { faCaretDown, faChevronDown, faCircleUser } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
-import classNames from 'classnames'
 import _ from 'lodash'
 import { useCallback, useState } from 'react'
-import { ActivityIndicator, Alert, Image, Linking, Pressable, ScrollView, Text, View } from 'react-native'
+import { Alert, Linking, ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import useAllWorkflowStates from '../../hooks/useAllWorkflowStates'
 import useAuth from '../../hooks/useAuth'
 import useIssue from '../../hooks/useIssue'
+import useUpdateIssue from '../../hooks/useUpdateIssue'
 import { Issue } from '../../models/Issue'
 import { RootScreenProps, useRootNavigation } from '../../navigation/models/RootParamList'
 import ActionSheet from '../common/components/ActionSheet'
+import LoadingSpinner from '../common/components/LoadingSpinner'
 import { safeAreaStyleGray } from '../common/styles/pageStyle'
-import IssueListRow, { renderPriorityIcon } from '../issueList/components/IssueListRow'
 import StateListModal from '../issueList/components/StateListModal'
-import UserNameAvatarView from '../issueList/components/UserNameAvatarView'
-import {
-  issueDetailsCardContentStyle,
-  issueDetailsCardPlaceholderStyle,
-  issueDetailsCardStyle,
-  issueDetailsCardSubtitleStyle,
-  issueDetailsCardTitleStyle,
-} from '../issueList/styles/IssueDetailsViewStyle'
+import IssueDetailsActivityCard from './components/IssueDetails/IssueDetailsActivityCard'
+import IssueDetailsDescriptionCard from './components/IssueDetails/IssueDetailsDescriptionCard'
+import IssueDetailsDetailsCard from './components/IssueDetails/IssueDetailsDetailsCard'
+import IssueDetailsHeaderView from './components/IssueDetails/IssueDetailsHeaderView'
+import IssueDetailsParentCard from './components/IssueDetails/IssueDetailsParentCard'
+import IssueDetailsSubissueList from './components/IssueDetails/IssueDetailsSubissueList'
 
 type Props = RootScreenProps<'IssueDetails'>
 
 export default function IssueDetailsView(props: Props) {
   const { token } = useAuth()
   const { issue, isLoading } = useIssue(token, props.route.params.issueId, 'full')
+  const { states: workflowStates } = useAllWorkflowStates(token, props.route.params.teamId)
+  const { updateIssueState } = useUpdateIssue(token)
 
   // TODO: fix description bug
-  console.log(issue?.description)
+  console.log('description', issue?.description)
 
   const hasDescription = !_.isEmpty(issue?.description)
-  const hasLabels = !_.isEmpty(issue?.labels)
 
   // Navigation
   const navigation = useRootNavigation()
   const onPressIssue = (issueId: Issue['id']) => {
-    navigation.push('IssueDetails', { issueId: issueId })
+    navigation.push('IssueDetails', { issueId: issueId, teamId: props.route.params.teamId })
   }
 
   // StateList
@@ -64,158 +62,46 @@ export default function IssueDetailsView(props: Props) {
     <SafeAreaView className={safeAreaStyleGray} edges={['left', 'right', 'bottom']}>
       <View className="p-4 h-full">
         {isLoading ? (
-          <View className="justify-center h-full">
-            <ActivityIndicator size="large" />
-          </View>
+          <LoadingSpinner />
         ) : (
           <>
             <ScrollView showsVerticalScrollIndicator={false}>
               <View className="flex flex-col items-start">
-                <Text className="text-xs text-gray-500">{issue.identifier}</Text>
-                <View className="flex flex-row justify-between mt-2 w-full">
-                  <Text className="text-xl font-semibold leading-6 w-5/6">{issue.title}</Text>
-                  {issue?.assignee?.avatarUrl ? (
-                    <Image className="h-9 w-9 rounded-full" source={{ uri: issue?.assignee?.avatarUrl }} />
-                  ) : (
-                    <FontAwesomeIcon icon={faCircleUser} color="#899499" size={36} />
-                  )}
-                </View>
-                <Pressable
-                  className="bg-blue-600 px-3 py-1.5 rounded-sm mt-4 flex-row flex items-center"
+                {/* header */}
+                <IssueDetailsHeaderView
+                  issue={issue}
                   onPress={() => {
                     setShowingStateListModal(true)
                   }}
-                >
-                  <Text className="text-white font-semibold mr-4">{issue.state.name}</Text>
-                  <FontAwesomeIcon icon={faChevronDown} color="#fff" size={10} />
-                </Pressable>
-                <View className={issueDetailsCardStyle}>
-                  <Text className={issueDetailsCardTitleStyle}>Description</Text>
-                  <Text
-                    className={classNames(
-                      hasDescription ? issueDetailsCardContentStyle : issueDetailsCardPlaceholderStyle,
-                      'mt-2',
-                    )}
-                  >
-                    {hasDescription ? issue.description : 'Add description...'}
-                  </Text>
-                </View>
-                {/* parent */}
-                {issue?.parent && (
-                  <View className={issueDetailsCardStyle}>
-                    <Text className={issueDetailsCardTitleStyle}>Parent</Text>
-                    <IssueListRow {...{ issue: issue?.parent, onPressIssue }} />
-                  </View>
-                )}
-                {/* children */}
-                {!_.isEmpty(issue?.children) && (
-                  <View className={issueDetailsCardStyle}>
-                    <Text className={issueDetailsCardTitleStyle}>Sub-issues</Text>
-                    {issue.children?.map((issue) => (
-                      <IssueListRow key={issue.id} {...{ issue: issue, onPressIssue }} />
-                    ))}
-                  </View>
-                )}
-                <View className={issueDetailsCardStyle}>
-                  <Text className={issueDetailsCardTitleStyle}>Details</Text>
-                  {/* assignee */}
-                  <View className="my-1">
-                    <Text className={classNames(issueDetailsCardSubtitleStyle, 'my-2')}>Assignee</Text>
-                    {issue.assignee ? (
-                      <UserNameAvatarView user={issue.assignee} />
-                    ) : (
-                      <Text className={issueDetailsCardContentStyle}>None</Text>
-                    )}
-                  </View>
-                  {/* creator */}
-                  {issue.creator && (
-                    <View className="my-1">
-                      <Text className={classNames(issueDetailsCardSubtitleStyle, 'my-2')}>Creator</Text>
-                      <UserNameAvatarView user={issue.creator} />
-                    </View>
-                  )}
-                  {/* labels */}
-                  <View className="my-1">
-                    <Text className={classNames(issueDetailsCardSubtitleStyle, 'my-2')}>Labels</Text>
-                    {hasLabels ? (
-                      <View className="flex flex-row flex-wrap gap-2">
-                        {issue?.labels?.map?.((label) => (
-                          <View
-                            key={label.id}
-                            className="px-2 py-1 rounded-sm"
-                            style={{ backgroundColor: label.color }}
-                          >
-                            <Text className="text-white">{label.name}</Text>
-                          </View>
-                        ))}
-                      </View>
-                    ) : (
-                      <View>
-                        <Text className={issueDetailsCardContentStyle}>None</Text>
-                      </View>
-                    )}
-                  </View>
-                  {/* priority */}
-                  <View className="my-1">
-                    <Text className={classNames(issueDetailsCardSubtitleStyle, 'my-2')}>Priority</Text>
-                    <View className="flex flex-row items-center">
-                      {renderPriorityIcon(issue.priority, 16)}
-                      <Text className="ml-2">{issue.priorityLabel}</Text>
-                    </View>
-                  </View>
-                  {/* url */}
-                  <View className="my-1">
-                    <Text className={classNames(issueDetailsCardSubtitleStyle, 'my-2')}>URL</Text>
-                    <Pressable onPress={onPressLinkButton}>
-                      <Text className={classNames(issueDetailsCardContentStyle, 'text-blue-600')}>Open in Linear</Text>
-                    </Pressable>
-                  </View>
-                </View>
-                {/* activity */}
-                <View className={issueDetailsCardStyle}>
-                  {/* activity header */}
-                  <View className="flex flex-row justify-between w-full items-center mb-4">
-                    <Text className={issueDetailsCardTitleStyle}>Activity</Text>
-                    <Pressable
-                      className="flex flex-row gap-1 items-center"
-                      onPress={() => {
-                        setIsShowingActivitySelector(true)
-                      }}
-                    >
-                      <Text className="text-blue-600 font-medium">Show comment</Text>
-                      <FontAwesomeIcon icon={faCaretDown} color="#3182ce" size={12} />
-                    </Pressable>
-                  </View>
-                  {/* body */}
-                  {/* TODO: change to activities */}
-                  {!_.isEmpty(issue?.comments) &&
-                    issue?.comments?.map((comment) => {
-                      return (
-                        <View key={comment.id} className="flex flex-row items-start gap-3 pb-3">
-                          <Image className="h-8 w-8 rounded-full" source={{ uri: comment.user.avatarUrl }} />
-                          <View>
-                            <View className="flex flex-row items-center gap-2 pb-1">
-                              <Text className="text-sm font-medium">{comment.user.name}</Text>
-                              <Text className="text-xs text-gray-500">{comment.createdAt.toLocaleString()}</Text>
-                            </View>
-                            <Text>{comment.bodyData}</Text>
-                          </View>
-                        </View>
-                      )
-                    })}
-                </View>
+                />
+                <IssueDetailsDescriptionCard
+                  isPlaceholder={!hasDescription}
+                  description={hasDescription ? issue.description : 'Add description...'}
+                />
+                {issue?.parent && <IssueDetailsParentCard parentIssue={issue.parent} onPressIssue={onPressIssue} />}
+                {!_.isEmpty(issue?.children) && <IssueDetailsSubissueList issue={issue} onPressIssue={onPressIssue} />}
+                <IssueDetailsDetailsCard issue={issue} onPressLinkButton={onPressLinkButton} />
+                <IssueDetailsActivityCard
+                  issue={issue}
+                  onPressShowButton={() => {
+                    setIsShowingActivitySelector(true)
+                  }}
+                />
               </View>
             </ScrollView>
-            <StateListModal
-              visible={isShowingStateListModal}
-              onRequestClose={() => {
-                setShowingStateListModal(false)
-              }}
-              onChange={() => {
-                // TODO:
-                setShowingStateListModal(false)
-              }}
-            ></StateListModal>
+            {workflowStates && (
+              <StateListModal
+                workflowStates={workflowStates}
+                visible={isShowingStateListModal}
+                onRequestClose={() => {
+                  setShowingStateListModal(false)
+                }}
+                onChange={(state) => {
+                  updateIssueState(issue.id, state)
+                  setShowingStateListModal(false)
+                }}
+              ></StateListModal>
+            )}
             {/* Bottom sheet */}
             {isShowingActivitySelector && (
               <ActionSheet

@@ -3,7 +3,7 @@ import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import _ from 'lodash'
 import { useMemo, useState } from 'react'
-import { ActivityIndicator, Pressable, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { linearIconToIconDefinition } from '../../helpers/iconHelpers'
@@ -12,6 +12,7 @@ import useAuth from '../../hooks/useAuth'
 import { Project } from '../../models/Project'
 import { useRootNavigation } from '../../navigation/models/RootParamList'
 import { TabScreenProps } from '../../navigation/models/TabParamList'
+import LoadingSpinner from '../common/components/LoadingSpinner'
 import SearchBar from '../common/components/SearchBar'
 import { safeAreaStyle } from '../common/styles/pageStyle'
 
@@ -52,7 +53,7 @@ export default function ProjectsView(props: Props) {
         }}
       >
         <View className="h-10 w-10 justify-center rounded-lg items-center">
-          <FontAwesomeIcon icon={icon} color={item.color} size={24} />
+          <FontAwesomeIcon icon={icon} color={item.color} size={20} />
         </View>
         <View className="flex-1 flex flex-row ml-2 border-b border-gray-300 justify-between items-center">
           <View className="py-3">
@@ -76,9 +77,7 @@ export default function ProjectsView(props: Props) {
     <SafeAreaView className={safeAreaStyle} edges={['left', 'right', 'bottom']}>
       <View className="h-full">
         {isLoading ? (
-          <View className="justify-center h-full">
-            <ActivityIndicator size="large" />
-          </View>
+          <LoadingSpinner />
         ) : (
           <>
             <View className="flex flex-row p-4 items-center">

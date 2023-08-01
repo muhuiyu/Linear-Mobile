@@ -1,24 +1,19 @@
 import { IconDefinition, faCircle } from '@fortawesome/free-regular-svg-icons'
-import { faCheckCircle, faCircleHalfStroke, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { faCheckCircle, faCircleHalfStroke, faSpinner, faXmarkCircle } from '@fortawesome/free-solid-svg-icons'
 import { z } from 'zod'
 
-export type WorkflowStateType = 'backlog' | 'started' | 'unstarted' | 'completed'
-export const allWorkflowStateTypes: WorkflowStateType[] = ['backlog', 'unstarted', 'started', 'completed']
+export type WorkflowStateType = 'backlog' | 'started' | 'unstarted' | 'completed' | 'canceled'
 // export const workFlowStateOrders: Record<WorkflowStateType, number> = {
 //   backlog: 0,
 //   unstarted: 1,
 //   started: 2,
 //   completed: 3,
 // }
-export const workflowStateTypeToName: Record<WorkflowStateType, string> = {
-  backlog: 'Backlog',
-  unstarted: 'Todo',
-  started: 'In progress',
-  completed: 'Done',
-}
 
 export interface WorkflowState {
   id: string
+  /** The state's UI color as a HEX string. */
+  color: string
   /** The state's name. */
   name: string
   /** The position of the state in the team flow. */
@@ -27,31 +22,33 @@ export interface WorkflowState {
   type: WorkflowStateType
 }
 
-export const workflowStateQuery = 'id name position type'
+export const workflowStateQuery = 'id name position type color'
 
 export const WorkflowStateSchema = z.object({
   id: z.string(),
+  color: z.string(),
   name: z.string(),
   position: z.number(),
   type: z.string().transform((value) => value as WorkflowStateType),
 })
 
-export const stateIconInfo = (type: WorkflowStateType): { icon: IconDefinition; color: string } => {
+export const stateIconInfo = (state: WorkflowState): { icon: IconDefinition; color: string } => {
   let icon = faSpinner
-  let color = '#000'
 
-  switch (type) {
+  switch (state.type) {
     case 'unstarted':
       icon = faCircle
       break
     case 'started':
       icon = faCircleHalfStroke
-      color = '#FAD02C'
       break
     case 'completed':
       icon = faCheckCircle
-      color = '#0A7029'
+      break
+    case 'canceled':
+      icon = faXmarkCircle
       break
   }
-  return { icon: icon, color: color }
+
+  return { icon: icon, color: state.color }
 }

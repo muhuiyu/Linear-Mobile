@@ -13,7 +13,7 @@ type RootParamList = {
 
   Issues: undefined
   IssueList: { teamId?: Team['id']; projectId?: Project['id'] }
-  IssueDetails: { issueId: Issue['id'] }
+  IssueDetails: { teamId: Team['id']; issueId: Issue['id'] }
 
   Dashboard: undefined
 

@@ -7,13 +7,17 @@ import { UserSchema, userQuery } from './User'
 import { WorkflowStateSchema, workflowStateQuery } from './WorkFlowState'
 
 // without sub-tasks, parent, creator, comments
-export const issueQuery = `id title identifier sortOrder completedAt url state { ${workflowStateQuery} } priority priorityLabel assignee { ${userQuery} } project { ${projectQuery} } labels { nodes { ${issueLabelQuery} } } `
+export const issueQuery = `id title identifier dueDate sortOrder completedAt url state { ${workflowStateQuery} } priority priorityLabel assignee { ${userQuery} } project { ${projectQuery} } labels { nodes { ${issueLabelQuery} } }`
 export const issueFullQuery = `${issueQuery} creator { ${userQuery} } parent { ${issueQuery} } children { nodes { ${issueQuery} } } comments { nodes { ${commentQuery} } }`
 
 const BaseIssueSchema = z.object({
   id: z.string(),
   sortOrder: z.number(),
   description: z.string().optional(),
+  dueDate: z
+    .string()
+    .nullable()
+    .transform((value) => (value ? new Date(value) : new Date())),
   title: z.string(),
   identifier: z.string(),
   state: WorkflowStateSchema,
